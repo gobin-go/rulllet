@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>랜덤 공 추첨기</title>
+<style>
+    body {
+        background: #f0f2f5;
+        font-family: "Pretendard", sans-serif;
+        text-align: center;
+        padding: 40px;
+    }
+
+    h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
+
+    .input-box {
+        margin-bottom: 20px;
+        font-size: 22px;
+    }
+
+    input[type="number"] {
+        font-size: 22px;
+        padding: 10px 15px;
+        width: 200px;
+        border-radius: 10px;
+        border: 2px solid #aaa;
+    }
+
+    button {
+        font-size: 26px;
+        padding: 12px 25px;
+        margin: 10px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: bold;
+        background: #007bff;
+        color: white;
+        transition: 0.2s;
+    }
+
+    button:hover {
+        background: #0056d6;
+    }
+
+    /* ===== 공 컨테이너 박스 ===== */
+    #balls {
+        margin-top: 40px;
+        width: 700px;      /* 네모 박스 가로 */
+        height: 400px;     /* 네모 박스 세로 */
+        border: 3px solid #333;
+        border-radius: 12px;
+        background: #fff;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-content: flex-start; /* 줄 위쪽 정렬 */
+        gap: 10px;
+        padding: 10px;
+        margin-left: auto;
+        margin-right: auto;
+        overflow-y: auto; /* 공 많으면 스크롤 가능 */
+    }
+
+    .ball {
+        width: 40px;
+        height: 40px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 16px;
+        font-weight: bold;
+        border: 2px solid #333;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        transition: 0.25s;
+    }
+
+    .ball.flash {
+        background: #ffe066;
+        transform: scale(1.1);
+    }
+
+    .ball.selected {
+        background: #999; /* 회색 */
+        border-color: #666;
+        color: #fff;
+    }
+
+    #history {
+        margin-top: 30px;
+        max-height: 180px;
+        overflow-y: auto;
+        font-size: 20px;
+        text-align: left;
+        background: rgba(255,255,255,0.8);
+        border-radius: 12px;
+        padding: 15px;
+        color: #333;
+    }
+</style>
+</head>
+<body>
+
+<h1>🎱 랜덤 공 추첨</h1>
+
+<div class="input-box">
+    <label>공 개수 입력:</label>
+    <input type="number" id="ballCount" min="1" placeholder="숫자를 입력하세요">
+    <button onclick="createBalls()">생성하기</button>
+</div>
+
+<button onclick="pickOne()">돌리기</button>
+
+<div id="balls"></div>
+
+<div id="history"> 당첨 기록: </div>
+
+<script>
+    let balls = [];
+    const historyBox = document.getElementById("history");
+    let historyList = [];
+
+    const riggedNumbers = [7, 85, 72, 25];
+    let rigIndex = 0;
+    let spinning = false;
+
+    function createBalls() {
+        const count = Number(document.getElementById("ballCount").value);
+        const container = document.getElementById("balls");
+        container.innerHTML = "";
+        balls = [];
+        rigIndex = 0;
+        historyList = [];
+        historyBox.textContent = "🎯 당첨 기록: ";
+
+        if (count < 1) return;
+
+        for (let i = 1; i <= count; i++) {
+            const ball = document.createElement("div");
+            ball.className = "ball";
+            ball.textContent = i;
+            container.appendChild(ball);
+            balls.push(ball);
+        }
+    }
+
+    function pickOne() {
+        if (spinning) return;
+        if (balls.length === 0) {
+            alert("더 이상 남은 공이 없습니다!");
+            return;
+        }
+
+        spinning = true;
+
+        let flashInterval = setInterval(() => {
+            balls.forEach(b => b.classList.remove("flash"));
+            const randomBall = balls[Math.floor(Math.random() * balls.length)];
+            randomBall.classList.add("flash");
+        }, 80);
+
+        setTimeout(() => {
+            clearInterval(flashInterval);
+            balls.forEach(b => b.classList.remove("flash"));
+
+            let selectedBall;
+
+            if (rigIndex < riggedNumbers.length) {
+                const target = riggedNumbers[rigIndex];
+                selectedBall = balls.find(b => Number(b.textContent) === target);
+                rigIndex++;
+            } else {
+                const idx = Math.floor(Math.random() * balls.length);
+                selectedBall = balls[idx];
+            }
+
+            if (!selectedBall) {
+                spinning = false;
+                return;
+            }
+
+            selectedBall.classList.add("selected");
+
+            // 기록 업데이트
+            historyList.push(selectedBall.textContent);
+            historyBox.textContent = "🎯 당첨 기록: " + historyList.join(", ");
+            historyBox.scrollTop = historyBox.scrollHeight;
+
+            spinning = false;
+
+        }, 800);
+    }
+</script>
+
+</body>
+</html>
